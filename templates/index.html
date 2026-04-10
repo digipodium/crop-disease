@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriScan AI | Crop Disease Detection</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* ================= ROOT VARIABLES ================= */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #00ff88;
+            --primary-dim: #00cc6a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #00ff88 0%, #00b8ff 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* BACKGROUND */
+        .bg-grid {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+        }
+
+        .bg-image {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: -1;
+            filter: grayscale(100%);
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            position: fixed;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-login {
+            padding: 10px 25px;
+            border: 1px solid rgba(0, 255, 136, 0.6);
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--primary);
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background: rgba(0, 255, 136, 0.25);
+            color: var(--bg-dark);
+        }
+
+        .btn-login:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.35);
+        }
+
+        /* HERO */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10%;
+        }
+
+        .hero-text {
+            max-width: 50%;
+        }
+
+        .badge {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .hero-text h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-main {
+            padding: 15px 40px;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: #0b1220;
+        }
+
+        .btn-outline {
+            padding: 15px 40px;
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+
+        /* HERO IMAGE */
+        .hero-image-container {
+            position: relative;
+            width: 45%;
+            height: 500px;
+        }
+
+        .hero-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        /* COMMON SECTION */
+        section {
+            padding: 100px 10%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+
+        /* STATS */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            padding: 50px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-item h2 {
+            color: var(--primary);
+            font-size: 2.5rem;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 400px;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* FINAL CTA */
+        .final-cta {
+            text-align: center;
+            background: var(--gradient);
+            padding: 80px 20px;
+            border-radius: 20px;
+            margin: 100px 10%;
+        }
+
+        .final-cta h2 {
+            color: var(--bg-dark);
+            margin-bottom: 30px;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #0b1220;
+            padding: 40px 10%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* RESPONSIVE */
+        @media(max-width: 900px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 120px;
+            }
+
+            .hero-text {
+                max-width: 100%;
+            }
+
+            .hero-image-container {
+                width: 100%;
+                height: 350px;
+                margin-top: 40px;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="bg-image"></div>
+
+    <nav>
+        <div class="logo">Agri<span>Scan</span></div>
+        <div class="nav-links">
+            <a style="margin-top: 15px;" href="{{ url_for('index') }}" style="color: var(--primary);">Home</a>
+            <a style="margin-top: 15px;" href="{{ url_for('about') }}">About</a>
+            
+            {% if current_user.is_authenticated %}
+                <a style="margin-top: 15px;" href="{{ url_for('upload') }}">Scan</a>
+                <span style="color: white; margin-left: 20px; font-size: 0.9rem;">Hi, {{ current_user.name }}</span>
+                <a href="{{ url_for('logout') }}" class="btn-login"
+                    style="border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+                <a href="{{ url_for('register') }}" class="btn-login"
+                    style="background: var(--primary); color: var(--bg-dark);">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-text">
+            <div class="badge">AI Powered v2.0</div>
+            <h1>Save Your Harvest with Smart Detection</h1>
+            <p>Identify crop diseases instantly using advanced computer vision models.</p>
+            <div class="cta-group">
+                <a href="{{ url_for('upload') }}" class="btn-main">Scan Crop Now</a>
+                <a href="/upload" class="btn-outline" style="text-decoration: none;">View Demo</a>
+            </div>
+        </div>
+        <div class="hero-image-container">
+            <img src="https://thumbs.dreamstime.com/b/young-tomato-plants-sprouting-dry-soil-farm-field-young-tomato-plants-sprouting-dry-soil-farm-field-high-quality-361366989.jpg"
+                class="hero-img">
+            <div class="scan-line"></div>
+        </div>
+    </section>
+
+    <!-- ENHANCED FEATURES SECTION -->
+    <section id="features" style="background: rgba(255,255,255,0.02);">
+        <h2 class="section-title">Advanced Diagnostics</h2>
+        <div class="card-container">
+            <div class="card feature-card">
+                <i class="fas fa-bolt" style="font-size: 2rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3>Real-time Analysis</h3>
+                <p>Our neural networks process your images in under 2 seconds, delivering instant results to your
+                    fingertips.</p>
+            </div>
+            <div class="card feature-card">
+                <i class="fas fa-microscope" style="font-size: 2rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3>98.5% Precision</h3>
+                <p>Trained on over 50,000 leaf samples to ensure your diagnosis is accurate and reliable.</p>
+            </div>
+            <div class="card feature-card">
+                <i class="fas fa-leaf" style="font-size: 2rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3>Broad Spectrum</h3>
+                <p>Support for Tomatoes, Potatoes, Bell Peppers, and more with specialized disease detection algorithms.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-bar">
+        <div class="stat-item">
+            <h2 class="counter">50</h2>
+            <p>Crop Varieties</p>
+        </div>
+        <div class="stat-item">
+            <div style="display: flex; align-items: baseline; justify-content: center;">
+                <h2 class="counter">98</h2>
+                <h2>%</h2>
+            </div>
+            <p>Accuracy Rate</p>
+        </div>
+        <div class="stat-item">
+            <h2 class="counter">10K+</h2>
+            <!-- <h2>K+</h2> -->
+            <p>Active Users</p>
+        </div>
+    </section>
+
+    <section id="pricing">
+        <h2 class="section-title">Simple Pricing</h2>
+        <div class="card-container">
+            <div class="card pricing-card">
+                <div class="pricing-header">
+                    <h3>Basic</h3>
+                    <h2 style="color:var(--primary); font-size: 3rem; margin:20px 0;">$0 <span
+                            style="font-size: 1rem; color: var(--text-muted);">/mo</span></h2>
+                </div>
+                <ul style="list-style: none; text-align: left; margin: 30px 0;">
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> 5 Scans per day</li>
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Basic Analysis</li>
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Community Support</li>
+                </ul>
+                <a href="{{ url_for('register') }}" class="btn-main"
+                    style="display: block; text-align: center; text-decoration: none;">Get Started</a>
+            </div>
+            <div class="card pricing-card active-plan"
+                style="border: 2px solid var(--primary); position: relative; transform: scale(1.05);">
+                <div
+                    style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.7rem;">
+                    MOST POPULAR</div>
+                <div class="pricing-header">
+                    <h3>Pro Farmer</h3>
+                    <h2 style="color:var(--primary); font-size: 3rem; margin:20px 0;">$19 <span
+                            style="font-size: 1rem; color: var(--text-muted);">/mo</span></h2>
+                </div>
+                <ul style="list-style: none; text-align: left; margin: 30px 0;">
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Unlimited Scans</li>
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Advanced AI Insights</li>
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Priority Expert Chat</li>
+                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
+                            style="color: var(--primary); margin-right: 10px;"></i> Offline History</li>
+                </ul>
+                <button class="btn-main" style="width: 100%;">Upgrade Now</button>
+            </div>
+        </div>
+    </section>
+
+    <section style="background: rgba(0,0,0,0.2);">
+        <h2 class="section-title">Common Questions</h2>
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div class="faq-item"
+                style="background: var(--bg-card); padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin-bottom: 10px; color: var(--primary);">How does the AI detect diseases?</h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">It uses complex pattern recognition trained on
+                    thousands of verified agricultural images to spot subtle signs of blight, spots, and virus
+                    infections.</p>
+            </div>
+            <div class="faq-item"
+                style="background: var(--bg-card); padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin-bottom: 10px; color: var(--primary);">What crops are supported?</h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">We currently specialize in nightshade family
+                    crops including various varieties of Tomato, Potato, and Bell Peppers.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div style="max-width: 700px; margin: 0 auto;">
+            <h2 style="font-size: 3rem; margin-bottom: 20px;">Ready to Protect Your Yield?</h2>
+            <p style="color: rgba(15,23,42,0.8); margin-bottom: 40px; font-weight: 500;">Join thousands of smart farmers
+                using AgriScan to ensure their crop health.</p>
+            <a href="{{ url_for('upload') }}" class="btn-main"
+                style="background: #0f172a; color: #fff; padding: 20px 60px; font-size: 1.2rem; text-decoration: none;">Start
+                Scanning Now</a>
+        </div>
+    </section>
+
+    <footer>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 30px;">
+            <div style="text-align: left;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Agri<span>Scan</span> AI</h3>
+                <p style="color: var(--text-muted); max-width: 300px;">Harnessing AI to build a more sustainable and
+                    productive agricultural future.</p>
+            </div>
+            <div style="display: flex; gap: 50px;">
+                <div>
+                    <h5 style="margin-bottom: 15px;">Product</h5>
+                    <p><a href="/upload" style="color: var(--text-muted); text-decoration: none;">Scan tool</a></p>
+                    <p><a href="/about" style="color: var(--text-muted); text-decoration: none;">AI Model</a></p>
+                </div>
+                <div>
+                    <h5 style="margin-bottom: 15px;">Company</h5>
+                    <p><a href="#" style="color: var(--text-muted); text-decoration: none;">Privacy</a></p>
+                    <p><a href="#" style="color: var(--text-muted); text-decoration: none;">Terms</a></p>
+                </div>
+            </div>
+        </div>
+        <div
+            style="margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: var(--text-muted);">
+            © 2025 AgriScan AI. Built for Smart Agriculture.
+        </div>
+    </footer>
+
+</body>
+
+</html>

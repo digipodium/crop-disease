@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Auction System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .register-container {
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+        }
+
+        .image-section {
+            background-image: url("https://i.makeagif.com/media/9-18-2018/r21do1.gif");
+            height: 140vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .image-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .form-section {
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-control:focus {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+            background: white;
+        }
+
+        .btn-register {
+            background: linear-gradient(45deg, #ffc107, #ff8c00);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak {
+            background: #dc3545;
+        }
+
+        .strength-medium {
+            background: #ffc107;
+        }
+
+        .strength-strong {
+            background: #28a745;
+        }
+
+        .validation-message {
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .valid-feedback,
+        .invalid-feedback {
+            display: block;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .password-toggle:hover {
+            color: #495057;
+        }
+
+        .floating-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .feature-list li i {
+            color: #ffc107;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/"><i class="fas fa-gavel mr-2"></i>Auction System</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/login"><i class="fas fa-sign-in-alt mr-1"></i>Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/register"><i class="fas fa-user-plus mr-1"></i>Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-0">
+        <div class="row no-gutters">
+            <!-- Left Side - Image Section -->
+            <div class="col-lg-6">
+                <div class="image-section">
+                    <div class="image-content">
+                        <i class="fas fa-user-plus fa-5x text-warning floating-icon mb-4"></i>
+                        <h2 class="font-weight-bold mb-3">Join Our Auction Platform</h2>
+                        <p class="lead mb-4">Create your account and start bidding on amazing items</p>
+
+                        <ul class="feature-list text-left">
+                            <li><i class="fas fa-check"></i>Secure bidding system</li>
+                            <li><i class="fas fa-check"></i>Real-time notifications</li>
+                            <li><i class="fas fa-check"></i>Multiple auction categories</li>
+                            <li><i class="fas fa-check"></i>24/7 customer support</li>
+                            <li><i class="fas fa-check"></i>Mobile-friendly interface</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Form Section -->
+            <div class="col-lg-6">
+                <div class="form-section">
+                    <div class="form-container">
+                        <div class="text-center mb-4">
+                            <h3 class="font-weight-bold text-dark">Create Account</h3>
+                            <p class="text-muted">Fill in your details to get started</p>
+                        </div>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+
+                        <form method="post" id="registerForm" novalidate>
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i class="fas fa-user mr-2 text-warning"></i>Full
+                                    Name</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                    placeholder="Enter your full name" required>
+                                <div class="invalid-feedback" id="nameError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i class="fas fa-envelope mr-2 text-warning"></i>Email
+                                    Address</label>
+                                <input type="email" name="email" id="email" class="form-control"
+                                    placeholder="Enter your email" required>
+                                <div class="invalid-feedback" id="emailError"></div>
+                                <div class="valid-feedback" id="emailSuccess"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i
+                                        class="fas fa-lock mr-2 text-warning"></i>Password</label>
+                                <input type="password" name="password" id="password" class="form-control"
+                                    placeholder="Create a strong password" required>
+                                <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                                <div class="password-strength mt-2" id="passwordStrength"></div>
+                                <div class="invalid-feedback" id="passwordError"></div>
+                                <div class="valid-feedback" id="passwordSuccess"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i class="fas fa-lock mr-2 text-warning"></i>Confirm
+                                    Password</label>
+                                <input type="password" name="confirm_password" id="confirmPassword" class="form-control"
+                                    placeholder="Confirm your password" required>
+                                <i class="fas fa-eye password-toggle" id="toggleConfirmPassword"></i>
+                                <div class="invalid-feedback" id="confirmPasswordError"></div>
+                                <div class="valid-feedback" id="confirmPasswordSuccess"></div>
+                            </div>
+                            
+
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-warning font-weight-bold">Terms and
+                                            Conditions</a>
+                                    </label>
+                                    <div class="invalid-feedback" id="termsError"></div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-warning btn-register text-dark font-weight-bold"
+                                    id="submitBtn">
+                                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                                </button>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <p class="text-muted">Already have an account?
+                                    <a href="/login" class="text-warning font-weight-bold">Sign In</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Password visibility toggle
+            $('#togglePassword, #toggleConfirmPassword').click(function () {
+                const input = $(this).siblings('input');
+                const icon = $(this);
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // Real-time validation
+            $('#name').on('input', function () {
+                validateName();
+            });
+
+            $('#email').on('input', function () {
+                validateEmail();
+            });
+
+            $('#password').on('input', function () {
+                validatePassword();
+                updatePasswordStrength();
+            });
+
+            $('#confirmPassword').on('input', function () {
+                validateConfirmPassword();
+            });
+
+            $('#role').on('change', function () {
+                validateRole();
+            });
+
+            $('#terms').on('change', function () {
+                validateTerms();
+            });
+
+            // Form submission
+            $('#registerForm').on('submit', function (e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    this.submit();
+                }
+            });
+
+            function validateName() {
+                const name = $('#name').val().trim();
+
+                if (name.length < 2) {
+                    showError('name', 'Name must be at least 2 characters long');
+                    return false;
+                } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                    showError('name', 'Name can only contain letters and spaces');
+                    return false;
+                } else {
+                    showSuccess('name', 'Name looks good!');
+                    return true;
+                }
+            }
+
+            function validateEmail() {
+                const email = $('#email').val().trim();
+
+                if (email.length === 0) {
+                    hideValidation('email');
+                    return false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showError('email', 'Please enter a valid email address');
+                    return false;
+                } else {
+                    showSuccess('email', 'Email format is valid');
+                    return true;
+                }
+            }
+
+            function validatePassword() {
+                const password = $('#password').val();
+
+                if (password.length === 0) {
+                    hideValidation('password');
+                    return false;
+                } else if (password.length < 8) {
+                    showError('password', 'Password must be at least 8 characters long');
+                    return false;
+                } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+                    showError('password', 'Password must contain at least one uppercase letter, one lowercase letter, and one number');
+                    return false;
+                } else {
+                    showSuccess('password', 'Password is strong!');
+                    return true;
+                }
+            }
+
+            function validateConfirmPassword() {
+                const password = $('#password').val();
+                const confirmPassword = $('#confirmPassword').val();
+
+                if (confirmPassword.length === 0) {
+                    hideValidation('confirmPassword');
+                    return false;
+                } else if (password !== confirmPassword) {
+                    showError('confirmPassword', 'Passwords do not match');
+                    return false;
+                } else {
+                    showSuccess('confirmPassword', 'Passwords match!');
+                    return true;
+                }
+            }
+
+            function validateRole() {
+                const role = $('#role').val();
+
+                if (role === '') {
+                    showError('role', 'Please select a role');
+                    return false;
+                } else {
+                    showSuccess('role', 'Role selected');
+                    return true;
+                }
+            }
+
+            function validateTerms() {
+                const terms = $('#terms').is(':checked');
+
+                if (!terms) {
+                    showError('terms', 'You must agree to the terms and conditions');
+                    return false;
+                } else {
+                    showSuccess('terms', 'Terms accepted');
+                    return true;
+                }
+            }
+
+            function updatePasswordStrength() {
+                const password = $('#password').val();
+                const strengthBar = $('#passwordStrength');
+
+                let strength = 0;
+                if (password.length >= 8) strength++;
+                if (/[a-z]/.test(password)) strength++;
+                if (/[A-Z]/.test(password)) strength++;
+                if (/\d/.test(password)) strength++;
+                if (/[^a-zA-Z\d]/.test(password)) strength++;
+
+                strengthBar.removeClass('strength-weak strength-medium strength-strong');
+
+                if (strength <= 2) {
+                    strengthBar.addClass('strength-weak');
+                } else if (strength <= 4) {
+                    strengthBar.addClass('strength-medium');
+                } else {
+                    strengthBar.addClass('strength-strong');
+                }
+            }
+
+            function validateForm() {
+                const nameValid = validateName();
+                const emailValid = validateEmail();
+                const passwordValid = validatePassword();
+                const confirmPasswordValid = validateConfirmPassword();
+                const roleValid = validateRole();
+                const termsValid = validateTerms();
+
+                return nameValid && emailValid && passwordValid && confirmPasswordValid && roleValid && termsValid;
+            }
+
+            function showError(field, message) {
+                $(`#${field}`).addClass('is-invalid').removeClass('is-valid');
+                $(`#${field}Error`).text(message).show();
+                $(`#${field}Success`).hide();
+            }
+
+            function showSuccess(field, message) {
+                $(`#${field}`).addClass('is-valid').removeClass('is-invalid');
+                $(`#${field}Success`).text(message).show();
+                $(`#${field}Error`).hide();
+            }
+
+            function hideValidation(field) {
+                $(`#${field}`).removeClass('is-valid is-invalid');
+                $(`#${field}Error, #${field}Success`).hide();
+            }
+        });
+    </script>
+</body>
+
+</html>
+

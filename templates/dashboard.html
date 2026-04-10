@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | AgriScan AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+
+:root{
+--bg-dark:#0f172a;
+--bg-card:rgba(255,255,255,0.95);
+--primary:#00ff88;
+--text-main:#1a1a1a;
+--text-muted:#666666;
+--accent:#0066ff;
+--white:#ffffff;
+}
+
+/* RESET */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+color:var(--text-main);
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+/* BACKGROUND IMAGE */
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:url("https://images.unsplash.com/photo-1574943320219-553eb213f72d?q=80&w=1600&auto=format&fit=crop") center/cover no-repeat;
+z-index:-2;
+}
+
+body::after{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(15,23,42,0.4);
+z-index:-1;
+}
+
+/* NAV */
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 8%;
+border-bottom:1px solid rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+background:rgba(15,23,42,0.85);
+}
+
+.logo{
+font-size:1.8rem;
+font-weight:900;
+color:#f8fafc;
+}
+
+.logo span{
+color:var(--primary);
+}
+
+nav a{
+color:#94a3b8;
+text-decoration:none;
+margin-left:25px;
+transition:.3s;
+}
+
+nav a:hover{
+color:var(--primary);
+}
+
+nav a.active{
+color:var(--primary);
+border-bottom:2px solid var(--primary);
+}
+
+/* MAIN CONTAINER */
+
+.main{
+flex:1;
+padding:40px 8%;
+max-width:1400px;
+margin:0 auto;
+width:100%;
+}
+
+/* HEADER */
+
+.dashboard-header{
+margin-bottom:40px;
+}
+
+.header-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+flex-wrap:wrap;
+gap:20px;
+}
+
+.header-top h1{
+font-size:2.5rem;
+color:var(--text-main);
+}
+
+.header-top .btn{
+padding:12px 25px;
+background:var(--accent);
+color:#fff;
+border:none;
+border-radius:8px;
+cursor:pointer;
+text-decoration:none;
+transition:.3s;
+font-weight:600;
+display:inline-block;
+box-shadow:0 3px 10px rgba(0,102,255,0.3);
+}
+
+.header-top .btn:hover{
+background:#0052cc;
+transform:scale(1.05);
+box-shadow:0 5px 15px rgba(0,102,255,0.4);
+}
+
+.welcome-card{
+background:var(--bg-card);
+padding:30px;
+border-radius:15px;
+border-left:5px solid var(--primary);
+backdrop-filter:blur(10px);
+margin-bottom:30px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.welcome-card h2{
+font-size:1.5rem;
+margin-bottom:10px;
+color:var(--text-main);
+}
+
+.welcome-card p{
+color:var(--text-muted);
+}
+
+/* STATS GRID */
+
+.stats-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+gap:20px;
+margin-bottom:40px;
+}
+
+.stat-card{
+background:var(--bg-card);
+padding:25px;
+border-radius:15px;
+border-top:4px solid var(--primary);
+backdrop-filter:blur(10px);
+text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+transition:.3s;
+}
+
+.stat-card:hover{
+transform:translateY(-5px);
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+.stat-card.accent{
+border-top-color:var(--accent);
+}
+
+.stat-icon{
+font-size:2.5rem;
+margin-bottom:15px;
+}
+
+.stat-value{
+font-size:2rem;
+font-weight:900;
+color:var(--primary);
+margin-bottom:5px;
+}
+
+.stat-label{
+color:#666;
+font-size:0.95rem;
+}
+
+/* HISTORY TABLE */
+
+.history-section{
+background:var(--bg-card);
+padding:30px;
+border-radius:15px;
+backdrop-filter:blur(10px);
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.history-section h3{
+font-size:1.5rem;
+margin-bottom:20px;
+color:var(--text-main);
+}
+
+.table-container{
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+thead{
+background:rgba(0,255,136,0.15);
+}
+
+th{
+padding:15px;
+text-align:left;
+color:var(--primary);
+font-weight:700;
+border-bottom:2px solid rgba(0,255,136,0.3);
+}
+
+td{
+padding:15px;
+border-bottom:1px solid rgba(0,0,0,0.08);
+color:var(--text-main);
+}
+
+tr:hover{
+background:rgba(0,255,136,0.08);
+}
+
+.disease-badge{
+background:rgba(0,255,136,0.15);
+color:#00aa66;
+padding:6px 12px;
+border-radius:20px;
+font-size:0.9rem;
+font-weight:600;
+}
+
+.confidence-badge{
+display:inline-block;
+padding:6px 12px;
+border-radius:20px;
+font-weight:600;
+}
+
+.confidence-high{
+background:rgba(0,255,136,0.2);
+color:#00aa66;
+}
+
+.confidence-medium{
+background:rgba(255,193,7,0.2);
+color:#ff8800;
+}
+
+.confidence-low{
+background:rgba(255,77,77,0.2);
+color:#cc0000;
+}
+
+.empty-state{
+text-align:center;
+padding:60px 20px;
+color:var(--text-main);
+}
+
+.empty-state i{
+font-size:4rem;
+color:#999;
+margin-bottom:20px;
+opacity:0.5;
+}
+
+.empty-state p{
+color:#666;
+font-size:1.1rem;
+}
+
+/* DISEASE STATS */
+
+.disease-stats{
+display:grid;
+grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+gap:15px;
+margin-top:30px;
+padding-top:30px;
+border-top:1px solid rgba(0,0,0,0.1);
+}
+
+.disease-item{
+background:rgba(0,255,136,0.08);
+padding:15px;
+border-radius:10px;
+border-left:4px solid var(--primary);
+}
+
+.disease-name{
+color:#666;
+font-size:0.9rem;
+margin-bottom:5px;
+}
+
+.disease-count{
+font-size:1.8rem;
+font-weight:900;
+color:var(--primary);
+}
+
+/* FOOTER */
+
+footer{
+padding:25px;
+text-align:center;
+color:#94a3b8;
+border-top:1px solid rgba(255,255,255,0.05);
+background:rgba(15,23,42,0.85);
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.main{
+padding:20px;
+}
+
+.header-top{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.header-top h1{
+font-size:1.8rem;
+}
+
+.stats-grid{
+grid-template-columns:1fr;
+}
+
+.table-container{
+overflow-x:scroll;
+}
+
+th, td{
+padding:10px;
+font-size:0.9rem;
+}
+
+.history-section{
+padding:15px;
+}
+
+.disease-stats{
+grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<nav>
+<div class="logo">Agri<span>Scan</span></div>
+
+<div>
+<a href="{{ url_for('index') }}">🏠 Home</a>
+<a href="{{ url_for('about') }}">About</a>
+<a href="/logout" style="color:#ff4d4d;">Logout</a>
+</div>
+</nav>
+
+<div class="main">
+
+<!-- HEADER -->
+<div class="dashboard-header">
+<div class="header-top">
+<h1>📊 Dashboard</h1>
+<a href="/upload" class="btn">+ New Scan</a>
+</div>
+
+<div class="welcome-card">
+<h2>Welcome back, <span style="color:var(--primary);">{{ user.name }}</span>! 🌾</h2>
+<p>Track your crop health with AI-powered disease detection</p>
+</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-icon">📸</div>
+<div class="stat-value">{{ total_predictions }}</div>
+<div class="stat-label">Total Scans</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-icon">🌱</div>
+<div class="stat-value">{{ crop_counts|length }}</div>
+<div class="stat-label">Crop Types</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-icon">⚠️</div>
+<div class="stat-value">{{ disease_counts|length }}</div>
+<div class="stat-label">Diseases Detected</div>
+</div>
+
+<div class="stat-card accent">
+<div class="stat-icon">✨</div>
+<div class="stat-value">AI</div>
+<div class="stat-label">Powered Detection</div>
+</div>
+</div>
+
+<!-- HISTORY SECTION -->
+<div class="history-section">
+<h3>📋 Scan History</h3>
+
+{% if predictions|length > 0 %}
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Date & Time</th>
+<th>Crop Type</th>
+<th>Disease</th>
+<th>Confidence</th>
+</tr>
+</thead>
+<tbody>
+{% for pred in predictions %}
+<tr>
+<td>{{ pred.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+<td><strong>{{ pred.crop_type }}</strong></td>
+<td><span class="disease-badge">{{ pred.disease_name }}</span></td>
+<td>
+  {% if pred.confidence >= 85 %}
+    <span class="confidence-badge confidence-high">{{ pred.confidence|round(2) }}%</span>
+  {% elif pred.confidence >= 70 %}
+    <span class="confidence-badge confidence-medium">{{ pred.confidence|round(2) }}%</span>
+  {% else %}
+    <span class="confidence-badge confidence-low">{{ pred.confidence|round(2) }}%</span>
+  {% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<!-- DISEASE STATISTICS -->
+<div class="disease-stats">
+<div style="grid-column:1/-1; margin-bottom:10px; color:var(--text-muted); font-weight:600;">🔍 Most Common Diseases:</div>
+{% for disease, count in disease_counts.items() %}
+<div class="disease-item">
+<div class="disease-name">{{ disease }}</div>
+<div class="disease-count">{{ count }}x</div>
+</div>
+{% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+<i class="fas fa-inbox"></i>
+<p>No scans yet. Start by uploading a crop image!</p>
+<a href="/upload" class="btn" style="display:inline-block; margin-top:20px;">Upload Image</a>
+</div>
+{% endif %}
+
+</div>
+
+</div>
+
+<footer>
+<p>© 2026 AgriScan AI • Smart Farming with AI</p>
+</footer>
+
+</body>
+</html>

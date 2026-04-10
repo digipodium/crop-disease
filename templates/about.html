@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | AgriScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #00ff88;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #00ff88 0%, #00b8ff 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-login {
+            padding: 8px 20px;
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .about-hero {
+            text-align: center;
+            padding: 120px 10% 80px;
+            background: linear-gradient(to bottom, rgba(0, 255, 136, 0.1), transparent);
+        }
+
+        .about-hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .about-hero p {
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: auto;
+            font-size: 1.1rem;
+        }
+
+        section {
+            padding: 80px 10%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 50px;
+        }
+
+        .content-grid {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .content-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .content-text h3 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .content-text p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .content-image {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .content-image img {
+            width: 100%;
+            border-radius: 20px;
+        }
+
+        .values {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .value-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .value-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .cta {
+            text-align: center;
+            background: var(--gradient);
+            padding: 80px 20px;
+            border-radius: 20px;
+            margin: 100px 10%;
+        }
+
+        .cta h2 {
+            color: #000;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .btn-dark {
+            padding: 15px 40px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        footer {
+            background: #0b1220;
+            padding: 60px 10%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media(max-width:900px) {
+            .about-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .content-grid {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Agri<span>Scan</span></div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}" style="color: var(--primary);">About</a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('upload') }}">Scan</a>
+            <a href="{{ url_for('logout') }}" class="btn-login"
+                style="border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+            <a href="{{ url_for('register') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <section class="about-hero">
+        <h1>About AgriScan AI</h1>
+        <p>Empowering farmers with artificial intelligence to detect crop diseases early and protect harvests worldwide.
+        </p>
+    </section>
+
+    <section>
+        <div class="content-grid">
+            <div class="content-text">
+                <h3>Our Mission</h3>
+                <p>AgriScan AI was created to solve one of agriculture’s biggest challenges — early detection of crop
+                    diseases.</p>
+                <p>Using advanced computer vision and deep learning models, we provide farmers with instant diagnosis
+                    and actionable insights.</p>
+            </div>
+            <div class="content-image">
+                <img
+                    src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1000&auto=format&fit=crop">
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title">Our Core Values</h2>
+        <div class="values">
+            <div class="value-card">
+                <i class="fas fa-leaf"></i>
+                <h3>Sustainability</h3>
+                <p>Helping farmers grow healthy crops while protecting the environment from excessive pesticide use.</p>
+            </div>
+            <div class="value-card">
+                <i class="fas fa-brain"></i>
+                <h3>Innovation</h3>
+                <p>Using cutting-edge AI technology and real-world datasets to transform global agriculture.</p>
+            </div>
+            <div class="value-card">
+                <i class="fas fa-users"></i>
+                <h3>Community</h3>
+                <p>Supporting farmers and agricultural communities worldwide with free, accessible tools.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Join the Future of Farming</h2>
+        <a href="{{ url_for('index') }}" class="btn-dark">Go Back Home</a>
+    </section>
+
+    <footer>
+        <h3 style="margin-bottom: 20px;">Agri<span style="color:var(--primary);">Scan</span> AI</h3>
+        <p style="color:var(--text-muted); margin-bottom: 20px;">Empowering Farmers with Smart AI Detection</p>
+        <p style="color:var(--text-muted); font-size:0.8rem;">© 2025 AgriScan AI. All Rights Reserved.</p>
+    </footer>
+
+</body>
+
+</html>

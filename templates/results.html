@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Results | AgriScan AI</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --primary: #00ff88;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ff4d4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=1600&auto=format&fit=crop") center/cover no-repeat;
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: -1;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            transition: .3s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            max-width: 900px;
+            width: 100%;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-image {
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .result-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-content {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            align-self: flex-start;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.diseased {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--danger);
+        }
+
+        .disease-name {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .confidence {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .confidence-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #0f172a;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            padding: 25px;
+            text-align: center;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media(max-width: 850px) {
+            .result-card {
+                flex-direction: column;
+            }
+
+            .result-image {
+                height: 300px;
+            }
+
+            .result-content {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Agri<span>Scan</span></div>
+        <div>
+            <a href="/">Home</a>
+            <a href="/upload">Scan New</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="result-card">
+            <div class="result-image">
+                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Crop">
+            </div>
+            <div class="result-content">
+                {% if 'healthy' in result.lower() %}
+                <div class="status-badge">
+                    <i class="fas fa-check-circle mr-2"></i> Healthy Crop
+                </div>
+                {% else %}
+                <div class="status-badge diseased">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Disease Detected
+                </div>
+                {% endif %}
+
+                <h2 class="disease-name">{{ result.replace('___', ' - ').replace('__', ' - ').replace('_', ' ') }}</h2>
+
+                <div class="confidence">
+                    <span>AI Confidence</span>
+                    <div class="confidence-bar-bg">
+                        <div class="confidence-bar-fill" style="width: {{ confidence }}%;"></div>
+                    </div>
+                    <span>{{ confidence }}%</span>
+                </div>
+
+                <p style="color: var(--text-muted); margin-bottom: 40px; line-height: 1.6;">
+                    Our AI analysis has identified the above condition based on the visual characteristics of the leaf.
+                    Please consult with an agriculture expert for specific treatment plans.
+                </p>
+
+                <div class="actions">
+                    <a href="/upload" class="btn btn-primary">Try Another</a>
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 AgriScan AI • Smart Farming with AI</p>
+    </footer>
+
+</body>
+
+</html>
