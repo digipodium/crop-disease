@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History Dashboard | AgriScan AI</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #0b0f1a;
+            --card-bg: rgba(23, 30, 48, 0.6);
+            --primary: #00ff88;
+            --primary-dim: #00cc6a;
+            --danger: #ff4d4d;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(0, 255, 136, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(0, 184, 255, 0.05) 0%, transparent 40%);
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: rgba(11, 15, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-scan {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-scan:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 8%;
+        }
+
+        .header-section {
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .title-box h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .title-box p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* --- STATS GRID --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            background: rgba(23, 30, 48, 0.8);
+            transform: translateY(-5px);
+        }
+
+        .stat-card i {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .stat-card h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.05), transparent 70%);
+            z-index: 0;
+        }
+
+        /* --- DATA TABLE/LIST --- */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 80px 2fr 1fr 1fr 80px;
+            padding: 10px 30px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scan-item {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px 30px;
+            display: grid;
+            grid-template-columns: 80px 2fr 1fr 1fr 80px;
+            align-items: center;
+            gap: 20px;
+            transition: 0.3s;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .scan-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(30, 38, 58, 0.7);
+        }
+
+        .leaf-thumb {
+            width: 65px;
+            height: 65px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-col h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .info-col .crop-tag {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .conf-col {
+            text-align: center;
+        }
+
+        .conf-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .conf-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .time-col {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .time-col span {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .action-col {
+            text-align: right;
+        }
+
+        .btn-delete {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: rgba(255, 77, 77, 0.05);
+            color: var(--danger);
+            border: 1px solid rgba(255, 77, 77, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+        }
+
+        /* --- FLASH MESSAGES --- */
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .flash {
+            background: var(--primary);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* --- EMPTY STATE --- */
+        .empty-visual {
+            text-align: center;
+            padding: 100px 0;
+            background: var(--card-bg);
+            border-radius: 30px;
+            border: 2px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .empty-visual i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .list-header {
+                display: none;
+            }
+
+            .scan-item {
+                grid-template-columns: 70px 1fr 80px;
+            }
+
+            .conf-col,
+            .time-col {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="/" class="logo">Agri<span>Scan</span> AI</a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}">About Model</a>
+            <a href="{{ url_for('upload') }}" class="btn-scan">New Scan</a>
+            <a href="{{ url_for('logout') }}" style="color: var(--danger);">Logout</a>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main class="wrapper">
+
+        <div class="header-section">
+            <div class="title-box">
+                <h1>Analysis Dashboard</h1>
+                <p>Track and manage your agricultural diagnostics history.</p>
+            </div>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-microscope"></i>
+                <h2>{{ predictions|length }}</h2>
+                <p>Successful Scans</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-bolt"></i>
+                <h2>{% if predictions %}{{ (predictions|sum(attribute='confidence') / predictions|length)|round(1) }}{%
+                    else %}0{% endif %}%</h2>
+                <p>Average Accuracy</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-check"></i>
+                <h2>Today</h2>
+                <p>Last Activity</p>
+            </div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <h2 style="margin-bottom: 25px; font-size: 1.4rem; font-weight: 700; color: var(--primary);">Prediction Logs
+        </h2>
+
+        {% if predictions %}
+        <div class="history-list">
+            <div class="list-header">
+                <div>Ref</div>
+                <div>Disease Classification</div>
+                <div style="text-align: center;">Certainty</div>
+                <div style="text-align: right;">Date</div>
+                <div></div>
+            </div>
+
+            {% for pred in predictions %}
+            <div class="scan-item" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+                <img src="{{ url_for('static', filename='uploads/' + pred.image_filename) }}" class="leaf-thumb"
+                    alt="Scan">
+
+                <div class="info-col">
+                    <span class="crop-tag">{{ pred.crop_type }}</span>
+                    <h3>{{ pred.disease_name.replace('___', ' - ').replace('__', ' - ').replace('_', ' ') }}</h3>
+                </div>
+
+                <div class="conf-col">
+                    <div class="conf-value">{{ "%.1f"|format(pred.confidence) }}%</div>
+                    <div class="conf-label">Match Score</div>
+                </div>
+
+                <div class="time-col">
+                    {{ pred.timestamp.strftime('%d %b, %Y') }}
+                    <span>{{ pred.timestamp.strftime('%I:%M %p') }}</span>
+                </div>
+
+                <div class="action-col">
+                    <a href="{{ url_for('delete_history', pred_id=pred.id) }}" class="btn-delete"
+                        onclick="return confirm('Archive this record?')">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-visual">
+            <i class="fas fa-database"></i>
+            <h2>Database is empty</h2>
+            <p style="color: var(--text-muted); margin-top: 10px;">You haven't performed any scans yet.</p>
+            <div style="margin-top: 30px;">
+                <a href="{{ url_for('upload') }}" class="btn-scan" style="text-decoration: none;">Start First
+                    Diagnosis</a>
+            </div>
+        </div>
+        {% endif %}
+
+    </main>
+
+    <footer style="margin-top: 80px; padding: 40px; text-align: center; border-top: 1px solid var(--glass-border);">
+        <p style="color: var(--text-muted); font-size: 0.8rem;">© 2025 AgriScan AI • Industrial Grade Crop Protection
+        </p>
+    </footer>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(() => {
+            const flashes = document.querySelectorAll('.flash');
+            flashes.forEach(f => f.style.display = 'none');
+        }, 3000);
+    </script>
+
+</body>
+
+</html>

@@ -123,7 +123,7 @@ preprocess = transforms.Compose([
 class_names = [
     'Pepper__bell___Bacterial_spot', 
     'Pepper__bell___healthy', 
-    'PlantVillage', 
+    'Unknown / Not a disease', 
     'Potato___Early_blight', 
     'Potato___Late_blight', 
     'Potato___healthy', 
@@ -360,19 +360,57 @@ def upload():
                 # Predict
                 with torch.no_grad():
                     output = model(input_batch)
-                    probabilities = torch.nn.functional.softmax(output[0], dim=0)
-                    confidence, index = torch.max(probabilities, 0)
                 
-                result = class_names[index.item()]
-                conf_score = confidence.item() * 100
+                # Calculate confidence and index
+                probabilities = torch.nn.functional.softmax(output[0], dim=0)
+                conf_score, index = torch.max(probabilities, 0)
                 
+                res_index = index.item()
+                final_conf = conf_score.item() * 100
+                
+                # Logic: If predicted as 'Unknown' (index 2), try taking the second-best prediction
+                if res_index == 2:
+                    top2_prob, top2_idx = torch.topk(probabilities, 2)
+                    if top2_prob[1].item() > 0.15:
+                        res_index = top2_idx[1].item()
+                        final_conf = top2_prob[1].item() * 100
+
+                result = class_names[res_index]
+                
+                # Save to history if user is logged in
+                if current_user.is_authenticated:
+                    # Save image to upload folder for history
+                    filename = secure_filename(f"{current_user.id}_{int(datetime.now().timestamp())}_{file.filename}")
+                    image_save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    
+                    # Need to seek back to start since we read it
+                    file.seek(0)
+                    file.save(image_save_path)
+                    
+                    # Determine crop type from result string
+                    crop_type = "Unknown"
+                    if "Tomato" in result: crop_type = "Tomato"
+                    elif "Potato" in result: crop_type = "Potato"
+                    elif "Pepper" in result: crop_type = "Pepper"
+
+                    new_pred = Prediction(
+                        user_id=current_user.id,
+                        disease_name=result,
+                        confidence=final_conf,
+                        image_filename=filename,
+                        crop_type=crop_type
+                    )
+                    db.session.add(new_pred)
+                    db.session.commit()
+
                 # Convert image to base64 for display
                 import base64
-                encoded_image = base64.b64encode(img_bytes).decode('utf-8')
+                file.seek(0)
+                encoded_image = base64.b64encode(file.read()).decode('utf-8')
                 
                 return render_template('results.html', 
                                      result=result, 
-                                     confidence=f"{conf_score:.2f}",
+                                     confidence=f"{final_conf:.2f}",
                                      image_data=encoded_image)
             except Exception as e:
                 flash(f"Error processing image: {str(e)}", "error")
@@ -380,6 +418,27 @@ def upload():
 
     demo_images = get_demo_images()
     return render_template('upload.html', demo_images=demo_images)
+
+@app.route('/history')
+@login_required
+def history():
+    user_predictions = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).all()
+    return render_template('history.html', predictions=user_predictions)
+
+@app.route('/delete_history/<int:pred_id>')
+@login_required
+def delete_history(pred_id):
+    pred = Prediction.query.get_or_404(pred_id)
+    if pred.user_id == current_user.id:
+        # Also delete image file if it exists
+        try:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], pred.image_filename))
+        except:
+            pass
+        db.session.delete(pred)
+        db.session.commit()
+        flash("Record deleted", "success")
+    return redirect(url_for('history'))
 
 if __name__ == "__main__":
     app.run(debug=True)
