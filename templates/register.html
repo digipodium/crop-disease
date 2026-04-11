@@ -51,6 +51,22 @@
             width: 100%;
         }
 
+        .nav-btn {
+    background: #00ff88;   /* green box */
+    color: black;          /* black text */
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* hover effect */
+.nav-btn:hover {
+    background: #00cc6a;
+    color: black;
+    transform: translateY(-2px);
+}
         .logo {
             font-size: 1.8rem;
             font-weight: 900;
@@ -109,6 +125,30 @@
                 transform: translateY(0);
             }
         }
+.btn-login {
+            padding: 10px 25px;
+            border: 1px solid rgba(0, 255, 136, 0.6);
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--primary);
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background: rgba(0, 255, 136, 0.25);
+            color: var(--bg-dark);
+        }
+
+        .btn-login:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.35);
+        }
+        .stat-item {
+    text-align: center;
+    padding: 20px;
+}
 
         .form-section {
             width: 50%;
@@ -161,37 +201,41 @@
         }
 
         .btn-submit {
-            padding: 13px;
-            border: none;
-            border-radius: 10px;
-            background: #0f172a;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 1rem;
-            margin-top: 10px;
-        }
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: #00ff88;   /* green box */
+    color: black;          /* black text */
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    margin-top: 10px;
+}
 
-        .btn-submit:hover {
-            background: #1e293b;
-            transform: translateY(-2px);
-        }
+.btn-submit:hover {
+    background: #00cc6a;   /* darker green on hover */
+    transform: translateY(-2px);
+}
 
         .image-section {
-            width: 50%;
-            background: linear-gradient(135deg, #00ff88, #00b8ff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
+    width: 50%;
+    background: linear-gradient(rgba(0,80,0,0.7), rgba(0,120,150,0.7)),
+        url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6") center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: white;
+}
+.image-section i {
+    animation: float 4s ease-in-out infinite;
+}
 
-        .image-section img {
-            width: 90%;
-            max-width: 450px;
-            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.2));
-        }
+@keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
 
         @media(max-width: 900px) {
             .container {
@@ -214,6 +258,8 @@
                 padding: 40px 30px;
             }
         }
+
+        
     </style>
 </head>
 
@@ -222,9 +268,12 @@
     <nav>
         <a href="/" class="logo">Agri<span>Scan</span></a>
         <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('about') }}">About</a>
-            <a href="{{ url_for('login') }}" style="color: var(--primary);">Login</a>
+            <a style="margin-top: 15px;" href="{{ url_for('index') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Home</a>
+            <a style="margin-top: 15px;"  href="{{ url_for('about') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">About</a>
+<a style="margin-top: 15px;" href="{{ url_for('login') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Login</a>
         </div>
     </nav>
 
@@ -264,9 +313,18 @@
             </div>
 
             <div class="image-section">
-                <img src="https://cdni.iconscout.com/illustration/premium/thumb/agricultural-scientist-doing-research-on-plants-illustration-download-in-svg-png-gif-file-formats--growth-farming-science-experiment-field-pack-nature-illustrations-5310652.png"
-                    alt="Register Illustration">
-            </div>
+    <div style="text-align:center; color:white;">
+        <i class="fas fa-seedling" style="font-size:60px; margin-bottom:20px;"></i>
+        <h2>Smart Crop Protection</h2>
+        <p>Detect plant diseases instantly using AI-powered CNN models</p>
+
+        <ul style="list-style:none; margin-top:20px; line-height:1.8;">
+            <li>✔ Real-time Image Analysis</li>
+            <li>✔ High Accuracy Detection</li>
+            <li>✔ Farmer Friendly System</li>
+        </ul>
+    </div>
+</div>
         </div>
     </div>
 

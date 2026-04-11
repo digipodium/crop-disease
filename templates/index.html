@@ -116,7 +116,21 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.35);
         }
+        .stat-item {
+    text-align: center;
+    padding: 20px;
+}
 
+.stat-icon {
+    font-size: 40px;
+    color: #2ecc71;
+    margin-bottom: 10px;
+}
+
+.stat-title {
+    font-size: 22px;
+    font-weight: bold;
+}
         /* HERO */
         .hero {
             height: 100vh;
@@ -287,12 +301,67 @@
                 height: 350px;
                 margin-top: 40px;
             }
+            
 
             .stats-bar {
                 flex-direction: column;
                 gap: 30px;
             }
         }
+
+
+        /* CARDS */
+.card {
+    background: var(--bg-card);
+    padding: 35px;
+    border-radius: 15px;
+    max-width: 320px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0,255,136,0.1);
+}
+
+.card h4 {
+    margin: 15px 0 10px;
+    font-size: 1.2rem;
+}
+
+.card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+.cards {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+
+.card-container {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* FINAL CTA */
+.final-cta {
+    text-align: center;
+    background: var(--gradient);
+    padding: 80px 20px;
+    border-radius: 20px;
+    margin: 100px 10%;
+}
+
+.final-cta h2 {
+    color: var(--bg-dark);
+    margin-bottom: 30px;
+}
     </style>
 </head>
 
@@ -304,18 +373,22 @@
     <nav>
         <div class="logo">Agri<span>Scan</span></div>
         <div class="nav-links">
-            <a style="margin-top: 15px;" href="{{ url_for('index') }}" style="color: var(--primary);">Home</a>
-            <a style="margin-top: 15px;" href="{{ url_for('about') }}">About</a>
+            
+            <a style="margin-top: 15px;" href="{{ url_for('about') }}"class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">About</a>
+                <a style="margin-top: 15px;" href="{{ url_for('history') }}"class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">History</a>
+            <a style="margin-top: 15px;" href="{{ url_for('upload') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);" >Scan</a>
+            {% if session.user_id %}
+                        <a href="{{ url_for('logout') }}" class="btn-login"
+                style="margin-top: 15px;border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
+                <span style="margin-top: 15px;color: white; margin-left: 20px; font-size: 0.9rem;">Hi, {{ session.user_name }}</span>
 
-            {% if current_user.is_authenticated %}
-            <a style="margin-top: 15px;" href="{{ url_for('upload') }}">Scan</a>
-            <a style="margin-top: 15px;" href="{{ url_for('history') }}">History</a>
-            <span style="color: white; margin-left: 20px; font-size: 0.9rem;">Hi, {{ current_user.name }}</span>
-            <a href="{{ url_for('logout') }}" class="btn-login"
-                style="border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
             {% else %}
-            <a href="{{ url_for('login') }}" class="btn-login">Login</a>
-            <a href="{{ url_for('register') }}" class="btn-login"
+            <a style="margin-top: 15px;" href="{{ url_for('login') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Login</a>
+            <a style="margin-top: 15px;" href="{{ url_for('register') }}" class="btn-login"
                 style="background: var(--primary); color: var(--bg-dark);">Register</a>
             {% endif %}
         </div>
@@ -363,67 +436,52 @@
     </section>
 
     <section class="stats-bar">
-        <div class="stat-item">
-            <h2 class="counter">50</h2>
-            <p>Crop Varieties</p>
-        </div>
-        <div class="stat-item">
-            <div style="display: flex; align-items: baseline; justify-content: center;">
-                <h2 class="counter">98</h2>
-                <h2>%</h2>
-            </div>
-            <p>Accuracy Rate</p>
-        </div>
-        <div class="stat-item">
-            <h2 class="counter">10K+</h2>
-            <!-- <h2>K+</h2> -->
-            <p>Active Users</p>
-        </div>
+       <!-- Add this in <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<div class="stat-item">
+    
+    <h2 class="counter">15+</h2>
+    <br>
+    <p>Crop Disease Classes</p>
+</div>
+
+<div class="stat-item">
+    <i class="fas fa-brain stat-icon"></i>
+    <p class="stat-title">AI-Based</p>
+    <p>Detection System</p>
+</div>
+
+<div class="stat-item">
+    <i class="fas fa-bolt stat-icon"></i>
+    <p class="stat-title">Real-Time</p>
+    <p>Prediction</p>
+</div>
     </section>
 
     <section id="pricing">
-        <h2 class="section-title">Simple Pricing</h2>
-        <div class="card-container">
-            <div class="card pricing-card">
-                <div class="pricing-header">
-                    <h3>Basic</h3>
-                    <h2 style="color:var(--primary); font-size: 3rem; margin:20px 0;">$0 <span
-                            style="font-size: 1rem; color: var(--text-muted);">/mo</span></h2>
-                </div>
-                <ul style="list-style: none; text-align: left; margin: 30px 0;">
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> 5 Scans per day</li>
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Basic Analysis</li>
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Community Support</li>
-                </ul>
-                <a href="{{ url_for('register') }}" class="btn-main"
-                    style="display: block; text-align: center; text-decoration: none;">Get Started</a>
-            </div>
-            <div class="card pricing-card active-plan"
-                style="border: 2px solid var(--primary); position: relative; transform: scale(1.05);">
-                <div
-                    style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.7rem;">
-                    MOST POPULAR</div>
-                <div class="pricing-header">
-                    <h3>Pro Farmer</h3>
-                    <h2 style="color:var(--primary); font-size: 3rem; margin:20px 0;">$19 <span
-                            style="font-size: 1rem; color: var(--text-muted);">/mo</span></h2>
-                </div>
-                <ul style="list-style: none; text-align: left; margin: 30px 0;">
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Unlimited Scans</li>
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Advanced AI Insights</li>
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Priority Expert Chat</li>
-                    <li style="margin-bottom: 15px;"><i class="fas fa-check"
-                            style="color: var(--primary); margin-right: 10px;"></i> Offline History</li>
-                </ul>
-                <button class="btn-main" style="width: 100%;">Upgrade Now</button>
-            </div>
-        </div>
+       <h2 class="section-title">How It Works</h2>
+<div class="cards">
+
+<div class="card">
+<h4>Step 1: Upload Image</h4>
+<p>Select and upload a clear image of your crop leaf.</p>
+</div>
+
+<div class="card">
+<h4>Step 2: AI Analysis</h4>
+<p>The system analyzes the image using trained deep learning model.</p>
+</div>
+
+<div class="card">
+<h4>Step 3: Prediction</h4>
+<p>Disease is identified based on patterns and features.</p>
+</div>
+
+<div class="card">
+<h4>Step 4: Result </h4>
+<p>You get prediction.</p>
+</div>
     </section>
 
     <section style="background: rgba(0,0,0,0.2);">
@@ -478,7 +536,7 @@
         </div>
         <div
             style="margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: var(--text-muted);">
-            © 2025 AgriScan AI. Built for Smart Agriculture.
+            © 2026 AgriScan AI. Built for Smart Agriculture.
         </div>
     </footer>
 

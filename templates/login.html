@@ -51,6 +51,15 @@
             width: 100%;
         }
 
+        .nav-btn {
+    background: #00ff88;   /* green box */
+    color: black;          /* black text */
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
         .logo {
             font-size: 1.8rem;
             font-weight: 900;
@@ -175,21 +184,76 @@
             background: #1e293b;
             transform: translateY(-2px);
         }
-
-        .image-section {
-            width: 50%;
-            background: linear-gradient(135deg, #00ff88, #00b8ff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
+.btn-login {
+            padding: 10px 25px;
+            border: 1px solid rgba(0, 255, 136, 0.6);
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--primary);
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
         }
 
-        .image-section img {
-            width: 90%;
-            max-width: 400px;
-            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.2));
+        .btn-login:hover {
+            background: rgba(0, 255, 136, 0.25);
+            color: var(--bg-dark);
         }
+
+        .btn-login:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.35);
+        }
+        .stat-item {
+    text-align: center;
+    padding: 20px;
+}
+
+        /* Right Image Section */
+.image-section{
+    width:50%;
+    background:linear-gradient(135deg,#28a745,#0077b6);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.image-section::before{
+    content:"";
+    position:absolute;
+    width:200px;
+    height:200px;
+    background:rgba(255,255,255,0.2);
+    border-radius:50%;
+    top:20%;
+    left:20%;
+    animation:moveLight 6s infinite alternate ease-in-out;
+}
+
+@keyframes moveLight{
+    from{transform:translate(0,0);}
+    to{transform:translate(60px,40px);}
+}
+
+.image-section img{
+    width:80%;
+    animation:float 4s ease-in-out infinite,
+            zoomIn 6s ease-in-out infinite;
+    filter:drop-shadow(0 0 20px rgba(255,255,255,0.4));
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-15px);}
+}
+
+@keyframes zoomIn{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.05);}
+}
+
 
         @media(max-width: 900px) {
             .container {
@@ -220,9 +284,12 @@
     <nav>
         <a href="/" class="logo">Agri<span>Scan</span></a>
         <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('about') }}">About</a>
-            <a href="{{ url_for('register') }}" style="color: var(--primary);">Register</a>
+            <a style="margin-top: 15px;" href="{{ url_for('index') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Home</a>
+            <a style="margin-top: 15px;"  href="{{ url_for('about') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">About</a>
+            <a  style="margin-top: 15px;" href="{{ url_for('register') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Register</a>
         </div>
     </nav>
 
@@ -234,12 +301,12 @@
 
                 <form method="POST" action="{{ url_for('login') }}">
                     <div class="input-group">
-                        <input type="email" name="email" placeholder="Email Address" required>
+                        <input type="email" name="email" placeholder="Enter your email" required>
                     </div>
 
                     <div class="input-group">
-                        <input type="password" id="password" name="password" placeholder="Password" required>
-                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="new-password">
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
                     </div>
 
                     <button type="submit" class="btn-submit">
@@ -254,9 +321,8 @@
             </div>
 
             <div class="image-section">
-                <img src="https://cdni.iconscout.com/illustration/premium/thumb/leaf-analysis-illustration-download-in-svg-png-gif-file-formats--growth-plants-plant-biology-nature-pack-trees-illustrations-5310651.png"
-                    alt="Diagnosis Illustration">
-            </div>
+        <img src="https://onlinegiftools.com/images/gif/illustrations/crop-gif.png" alt="Crop Illustration">
+    </div>
         </div>
     </div>
 
@@ -274,6 +340,7 @@
             }
         });
     </script>
+    
 
 </body>
 
