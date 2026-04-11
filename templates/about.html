@@ -220,18 +220,17 @@
 
     <nav>
         <div class="logo">Agri<span>Scan</span></div>
-        
+
         <div class="nav-links">
             <a style="margin-top: 15px;" href="{{ url_for('index') }}" class="btn-login"
                 style="background: var(--primary); color: var(--bg-dark);">Home</a>
             <a style="margin-top: 15px;" href="{{ url_for('upload') }}" class="btn-login"
-                style="background: var(--primary); color: var(--bg-dark);" >Scan</a>
-            <a style="margin-top: 15px;" href="{{ url_for('history') }}"class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Scan</a>
+            <a style="margin-top: 15px;" href="{{ url_for('history') }}" class="btn-login"
                 style="background: var(--primary); color: var(--bg-dark);">History</a>
-            {% if session.user_id %}
-                        <a href="{{ url_for('logout') }}" class="btn-login"
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('logout') }}" class="btn-login"
                 style="margin-top: 15px;border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
-                
             {% else %}
             <a style="margin-top: 15px;" href="{{ url_for('login') }}" class="btn-login"
                 style="background: var(--primary); color: var(--bg-dark);">Login</a>
