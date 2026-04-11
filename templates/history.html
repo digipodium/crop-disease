@@ -332,7 +332,30 @@
                 transform: translateX(0);
             }
         }
+                .btn-login {
+            padding: 10px 25px;
+            border: 1px solid rgba(0, 255, 136, 0.6);
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--primary);
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
 
+        .btn-login:hover {
+            background: rgba(0, 255, 136, 0.25);
+            color: var(--bg-dark);
+        }
+
+        .btn-login:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.35);
+        }
+        .stat-item {
+    text-align: center;
+    padding: 20px;
+}
         /* --- EMPTY STATE --- */
         .empty-visual {
             text-align: center;
@@ -370,10 +393,14 @@
     <nav>
         <a href="/" class="logo">Agri<span>Scan</span> AI</a>
         <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('about') }}">About Model</a>
-            <a href="{{ url_for('upload') }}" class="btn-scan">New Scan</a>
-            <a href="{{ url_for('logout') }}" style="color: var(--danger);">Logout</a>
+            <a style="margin-top: 15px;" href="{{ url_for('index') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">Home</a>
+            <a style="margin-top: 15px;"  href="{{ url_for('about') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">About</a>
+            <a style="margin-top: 15px;"  href="{{ url_for('upload') }}" class="btn-login"
+                style="background: var(--primary); color: var(--bg-dark);">New Scan</a>
+            <a href="{{ url_for('logout') }}" class="btn-login"
+                style="margin-top: 15px;border-color: #ff4d4d; color: #ff4d4d; background: rgba(255, 77, 77, 0.1);">Logout</a>
         </div>
     </nav>
 
@@ -474,7 +501,7 @@
     </main>
 
     <footer style="margin-top: 80px; padding: 40px; text-align: center; border-top: 1px solid var(--glass-border);">
-        <p style="color: var(--text-muted); font-size: 0.8rem;">© 2025 AgriScan AI • Industrial Grade Crop Protection
+        <p style="color: var(--text-muted); font-size: 0.8rem;">© 2026 AgriScan AI • Industrial Grade Crop Protection
         </p>
     </footer>
 
