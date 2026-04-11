@@ -233,7 +233,7 @@ def upload():
                 if imgs:
                     demos.append({'class': d, 'path': os.path.join(d, imgs[0])})
     
-    return render_template('upload.html', demo_images=demos[:4])
+    return render_template('upload.html', demo_images=demos)
 
 @app.route('/history')
 @login_required
