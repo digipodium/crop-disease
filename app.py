@@ -1,262 +1,483 @@
 import os
-import io
-import torch
-import torch.nn as nn
-from torchvision import models, transforms
-from PIL import Image, ImageEnhance
-from flask import Flask, request, render_template, redirect, url_for, flash, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from datetime import datetime
+import sqlite3
 import base64
+from datetime import datetime
+from functools import wraps
+from pathlib import Path
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'agriscan-ai-secret'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+from flask import (Flask, flash, g, redirect, render_template, request,
+                   send_from_directory, session, url_for)
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
-db = SQLAlchemy(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+from plant_disease_model import PlantDiseasePredictor, cfg
 
-# --- MODELS ---
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
-class Prediction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    disease_name = db.Column(db.String(200), nullable=False)
-    confidence = db.Column(db.Float, nullable=False)
-    image_filename = db.Column(db.String(300), nullable=False)
-    crop_type = db.Column(db.String(100), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+# Initialize Flask app
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_mapping(
+    SECRET_KEY="change-this-secret-key",
+    DATABASE=os.path.join(app.instance_path, "users.db"),
+    UPLOAD_FOLDER=os.path.join(app.root_path, "static", "uploads"),
+    MAX_CONTENT_LENGTH=5 * 1024 * 1024,  # 5 MB upload limit
+)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# Ensure required folders exist
+os.makedirs(app.instance_path, exist_ok=True)
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-# --- AI CORE CONFIG ---
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+TEST_DIR = os.path.join(app.root_path, "test")
 
-class_names = [
-    'Pepper__bell___Bacterial_spot', 
-    'Pepper__bell___healthy', 
-    'Unknown / Not a disease', 
-    'Potato___Early_blight', 
-    'Potato___Late_blight', 
-    'Potato___healthy', 
-    'Tomato_Bacterial_spot', 
-    'Tomato_Early_blight', 
-    'Tomato_Late_blight', 
-    'Tomato_Leaf_Mold', 
-    'Tomato_Septoria_leaf_spot', 
-    'Tomato_Spider_mites_Two_spotted_spider_mite', 
-    'Tomato__Target_Spot', 
-    'Tomato__Tomato_YellowLeaf__Curl_Virus', 
-    'Tomato__Tomato_mosaic_virus', 
-    'Tomato_healthy'
-]
+# Load the trained predictor once
+try:
+    predictor = PlantDiseasePredictor(cfg.MODEL_SAVE_PATH)
+except Exception as e:
+    predictor = None
+    print(f"[Warning] Failed to load model predictor: {e}")
 
-# Robust TenCrop preprocessing
-robust_preprocess = transforms.Compose([
-    transforms.Resize(256),
-    transforms.TenCrop(224),
-    transforms.Lambda(lambda crops: torch.stack([
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(transforms.ToTensor()(crop)) 
-        for crop in crops
-    ]))
-])
 
-def load_disease_model():
-    model_path = os.path.join(os.path.dirname(__file__), 'crop_disease_model.pth')
-    model = models.mobilenet_v3_large(weights=None, num_classes=len(class_names))
-    if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location=DEVICE))
-        print("Model loaded successfully.")
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(
+            app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
+        )
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+
+def close_db(e=None):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+
+app.teardown_appcontext(close_db)
+
+
+def init_db():
+    db = get_db()
+    user_table = db.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='user'"
+    ).fetchone()
+
+    if user_table is None:
+        db.execute(
+            "CREATE TABLE user ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "name TEXT NOT NULL, "
+            "email TEXT UNIQUE NOT NULL, "
+            "password TEXT NOT NULL"
+            ")"
+        )
+        db.commit()
     else:
-        print(f"Warning: Model file {model_path} not found.")
-    model.to(DEVICE)
-    model.eval()
-    return model
-
-MODEL = load_disease_model()
-
-# --- ROUTES ---
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        user_exists = User.query.filter_by(email=email).first()
-        if user_exists:
-            flash('Email already registered', 'error')
-            return redirect(url_for('register'))
-        
-        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'))
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('index'))
-        else:
-            flash('Invalid email or password', 'error')
-    return render_template('login.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-# --- SCANNING CORE ---
-def get_model_prediction(image):
-    # Enhance slightly
-    image = ImageEnhance.Contrast(image).enhance(1.1)
-    image = ImageEnhance.Sharpness(image).enhance(1.2)
-    
-    # Process batch (10 views)
-    input_batch = robust_preprocess(image).to(DEVICE)
-    with torch.no_grad():
-        outputs = MODEL(input_batch)
-        avg_output = outputs.mean(0)
-        probabilities = torch.nn.functional.softmax(avg_output, dim=0)
-        top_probs, top_indices = torch.topk(probabilities, 2)
-        
-    res_index = top_indices[0].item()
-    conf = top_probs[0].item() * 100
-    
-    # Unknown logic
-    if res_index == 2 and top_probs[1].item() > 0.10:
-        res_index = top_indices[1].item()
-        conf = top_probs[1].item() * 100
-        
-    return class_names[res_index], conf
-
-@app.route('/demo_predict/<path:filepath>')
-def demo_predict(filepath):
-    safe_path = os.path.normpath(filepath).replace('..', '')
-    full_path = os.path.join(os.getcwd(),'PlantVillage', safe_path)
-    
-    if os.path.exists(full_path):
-        image = Image.open(full_path).convert('RGB')
-        result, conf = get_model_prediction(image)
-        
-        # Prepare for template
-        img_byte_arr = io.BytesIO()
-        image.save(img_byte_arr, format='JPEG')
-        encoded_image = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
-        
-        return render_template('results.html', result=result, confidence=f"{conf:.2f}", image_data=encoded_image)
-    return redirect(url_for('upload'))
-
-@app.route('/upload', methods=['GET', 'POST'])
-@login_required
-def upload():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return redirect(url_for('upload'))
-        file = request.files['file']
-        if file.filename == '':
-            return redirect(url_for('upload'))
-        
-        if file:
-            try:
-                img_bytes = file.read()
-                image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-                
-                result, conf = get_model_prediction(image)
-                
-                # Save to history
-                filename = secure_filename(f"{current_user.id}_{int(datetime.now().timestamp())}_{file.filename}")
-                image_save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.seek(0)
-                file.save(image_save_path)
-                
-                crop_type = "Unknown"
-                if "Tomato" in result: crop_type = "Tomato"
-                elif "Potato" in result: crop_type = "Potato"
-                elif "Pepper" in result: crop_type = "Pepper"
-
-                new_pred = Prediction(
-                    user_id=current_user.id,
-                    disease_name=result,
-                    confidence=conf,
-                    image_filename=filename,
-                    crop_type=crop_type
+        columns = [row[1] for row in db.execute("PRAGMA table_info(user)").fetchall()]
+        if "email" not in columns or "name" not in columns:
+            db.execute("ALTER TABLE user RENAME TO user_old")
+            db.execute(
+                "CREATE TABLE user ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "name TEXT NOT NULL, "
+                "email TEXT UNIQUE NOT NULL, "
+                "password TEXT NOT NULL"
+                ")"
+            )
+            old_users = db.execute(
+                "SELECT id, username, password FROM user_old"
+            ).fetchall()
+            for user in old_users:
+                db.execute(
+                    "INSERT INTO user (id, name, email, password) VALUES (?, ?, ?, ?)",
+                    (user[0], user[1], user[1], user[2]),
                 )
-                db.session.add(new_pred)
-                db.session.commit()
-                
-                encoded_image = base64.b64encode(img_bytes).decode('utf-8')
-                return render_template('results.html', result=result, confidence=f"{conf:.2f}", image_data=encoded_image)
-            except Exception as e:
-                flash(f"Error: {str(e)}", "error")
-                return redirect(url_for('upload'))
-                
-    # GET: Scan page logic
-    demos = []
-    pv_path = 'PlantVillage'
-    if os.path.exists(pv_path):
-        for d in os.listdir(pv_path):
-            d_path = os.path.join(pv_path, d)
-            if os.path.isdir(d_path) and d != 'PlantVillage':
-                imgs = [f for f in os.listdir(d_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-                if imgs:
-                    demos.append({'class': d, 'path': os.path.join(d, imgs[0])})
-    
-    return render_template('upload.html', demo_images=demos)
+            db.execute("DROP TABLE user_old")
+            db.commit()
 
-@app.route('/history')
+    predictions_table = db.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='predictions'"
+    ).fetchone()
+
+    if predictions_table is None:
+        db.execute(
+            "CREATE TABLE predictions ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "user_id INTEGER NOT NULL, "
+            "image_filename TEXT NOT NULL, "
+            "image_source TEXT NOT NULL, "
+            "crop_type TEXT NOT NULL, "
+            "disease_name TEXT NOT NULL, "
+            "confidence REAL NOT NULL, "
+            "timestamp TIMESTAMP NOT NULL, "
+            "FOREIGN KEY(user_id) REFERENCES user(id)"
+            ")"
+        )
+        db.commit()
+
+
+@app.before_request
+def load_logged_in_user():
+    user_id = session.get("user_id")
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = get_db().execute(
+            "SELECT id, name, email FROM user WHERE id = ?", (user_id,)
+        ).fetchone()
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for("login"))
+        return view(**kwargs)
+    return wrapped_view
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_prediction(user_id, image_filename, image_source, disease_name, confidence):
+    crop_type = disease_name.split()[0].title() if disease_name else "Unknown"
+    timestamp = datetime.now()
+    db = get_db()
+    db.execute(
+        "INSERT INTO predictions (user_id, image_filename, image_source, crop_type, disease_name, confidence, timestamp) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (user_id, image_filename, image_source, crop_type, disease_name, confidence, timestamp),
+    )
+    db.commit()
+
+
+def get_user_predictions(user_id):
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM predictions WHERE user_id = ? ORDER BY timestamp DESC",
+        (user_id,),
+    ).fetchall()
+
+
+def delete_user_prediction(user_id, prediction_id):
+    db = get_db()
+    db.execute(
+        "DELETE FROM predictions WHERE id = ? AND user_id = ?",
+        (prediction_id, user_id),
+    )
+    db.commit()
+
+
+def get_demo_images():
+    samples = [
+        {"filename": "black_rot.jpg", "label": "Apple Black Rot", "source": "test"},
+        {"filename": "corn_healthy.jpg", "label": "Corn Healthy", "source": "uploads"},
+        {"filename": "corn_northern_leaf_blight.jpg", "label": "Corn Northern Leaf Blight", "source": "test"},
+        {"filename": "corn_northern_leaf.jpg", "label": "Corn Grey Leaf", "source": "test"},
+        {"filename": "tomato-septoria-leaf-spot.jpg", "label": "Tomato Septoria Leaf Spot", "source": "test"},
+        {"filename": "grape_black_rot.jpg", "label": "Grape Black Rot", "source": "test"},
+        {"filename": "grape_esca_black_measles.jpg", "label": "Grape Esca Black Measles", "source": "uploads"},
+        {"filename": "grape_healthy.jpg", "label": "Grape Healthy", "source": "uploads"},
+        {"filename": "Grape_leaf_blight.jpg", "label": "Grape Leaf Blight", "source": "uploads"},
+        {"filename": "tomato_late_blight.jpg", "label": "Tomato Late Blight", "source": "uploads"},
+    ]
+
+    demo_images = []
+    uploads_dir = os.path.join(app.static_folder, "uploads")
+    for sample in samples:
+        if sample["source"] == "test":
+            sample_path = os.path.join(TEST_DIR, sample["filename"])
+        else:
+            sample_path = os.path.join(uploads_dir, sample["filename"])
+
+        if os.path.exists(sample_path):
+            demo_images.append(sample)
+    return demo_images
+
+
+@app.route("/demo/image/<source>/<path:filename>")
+def demo_image(source, filename):
+    if source == "test":
+        root = TEST_DIR
+    elif source == "uploads":
+        root = os.path.join(app.static_folder, "uploads")
+    else:
+        return redirect(url_for("upload"))
+
+    safe_filename = os.path.basename(filename)
+    return send_from_directory(root, safe_filename)
+
+
+@app.route("/demo/predict/<source>/<path:filename>")
+@login_required
+def demo_predict(source, filename):
+    if predictor is None:
+        flash("Model is not loaded. Please start the app after the checkpoint is available.", "danger")
+        return redirect(url_for("upload"))
+
+    if source == "test":
+        root = TEST_DIR
+    elif source == "uploads":
+        root = os.path.join(app.static_folder, "uploads")
+    else:
+        flash("Invalid demo image source.", "danger")
+        return redirect(url_for("upload"))
+
+    safe_filename = os.path.basename(filename)
+    demo_path = os.path.join(root, safe_filename)
+    if not os.path.exists(demo_path):
+        flash("Demo image not found.", "danger")
+        return redirect(url_for("upload"))
+
+    try:
+        result = predictor.predict(demo_path, top_k=5)
+        result["predicted_class"] = result["predicted_class"].replace("___", " - ").replace("_", " ")
+        for item in result["top_k_predictions"]:
+            item["class"] = item["class"].replace("___", " - ").replace("_", " ")
+
+        with open(demo_path, "rb") as image_file:
+            image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+        save_prediction(
+            g.user["id"],
+            safe_filename,
+            source,
+            result["predicted_class"],
+            float(result["confidence"]),
+        )
+
+        return render_template(
+            "results.html",
+            result=result["predicted_class"],
+            confidence=result["confidence"],
+            image_data=image_data,
+        )
+    except Exception as e:
+        flash(f"Demo prediction failed: {e}", "danger")
+        return redirect(url_for("upload"))
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/history")
 @login_required
 def history():
-    user_predictions = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).all()
-    return render_template('history.html', predictions=user_predictions)
+    predictions = get_user_predictions(g.user["id"])
+    return render_template("history.html", predictions=predictions)
 
-@app.route('/delete_history/<int:pred_id>')
+@app.route("/history/delete/<int:prediction_id>")
 @login_required
-def delete_history(pred_id):
-    pred = Prediction.query.get_or_404(pred_id)
-    if pred.user_id == current_user.id:
-        try:
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], pred.image_filename))
-        except:
-            pass
-        db.session.delete(pred)
-        db.session.commit()
-        flash("Record deleted", "success")
-    return redirect(url_for('history'))
+def delete_history(prediction_id):
+    delete_user_prediction(g.user["id"], prediction_id)
+    flash("Prediction record archived successfully.", "success")
+    return redirect(url_for("history"))
+
+@app.route("/upload", methods=("GET", "POST"))
+@login_required
+def upload():
+    demo_images = get_demo_images()
+
+    def render_upload():
+        return render_template("upload.html", demo_images=demo_images)
+
+    if predictor is None:
+        flash("Model is not loaded. Please start the app after the checkpoint is available.", "danger")
+        return render_upload()
+
+    if request.method == "POST":
+        if "leaf_image" not in request.files:
+            flash("No image uploaded.", "danger")
+            return render_upload()
+
+        file = request.files["leaf_image"]
+        if file.filename == "":
+            flash("Please choose an image file.", "danger")
+            return render_upload()
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
+
+            try:
+                result = predictor.predict(save_path, top_k=5)
+                result["predicted_class"] = result["predicted_class"].replace("___", " - ").replace("_", " ")
+                for item in result["top_k_predictions"]:
+                    item["class"] = item["class"].replace("___", " - ").replace("_", " ")
+
+                with open(save_path, "rb") as image_file:
+                    image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+                save_prediction(
+                    g.user["id"],
+                    filename,
+                    "uploads",
+                    result["predicted_class"],
+                    float(result["confidence"]),
+                )
+
+                return render_template(
+                    "results.html",
+                    result=result["predicted_class"],
+                    confidence=result["confidence"],
+                    image_data=image_data,
+                )
+            except Exception as e:
+                flash(f"Prediction failed: {e}", "danger")
+                return render_upload()
+        else:
+            flash("Allowed image formats: jpg, jpeg, png.", "danger")
+            return render_upload()
+
+    return render_upload()
+
+
+@app.route("/register", methods=("GET", "POST"))
+def register():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
+        confirm_password = request.form.get("confirm_password", "")
+        db = get_db()
+        error = None
+
+        if not name:
+            error = "Full name is required."
+        elif not email:
+            error = "Email address is required."
+        elif not password:
+            error = "Password is required."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif db.execute("SELECT id FROM user WHERE email = ?", (email,)).fetchone() is not None:
+            error = "Email is already registered."
+
+        if error is None:
+            db.execute(
+                "INSERT INTO user (name, email, password) VALUES (?, ?, ?)",
+                (name, email, generate_password_hash(password)),
+            )
+            db.commit()
+            flash("Registration successful. Please log in.", "success")
+            return redirect(url_for("login"))
+
+        flash(error, "danger")
+
+    return render_template("register.html")
+
+
+@app.route("/login", methods=("GET", "POST"))
+def login():
+    if request.method == "POST":
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
+        db = get_db()
+        error = None
+        user = db.execute(
+            "SELECT * FROM user WHERE email = ?", (email,)
+        ).fetchone()
+
+        if user is None:
+            error = "Incorrect email or password."
+        elif not check_password_hash(user["password"], password):
+            error = "Incorrect email or password."
+
+        if error is None:
+            session.clear()
+            session["user_id"] = user["id"]
+            return redirect(url_for("upload"))
+
+        flash(error, "danger")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/predict", methods=("GET", "POST"))
+@login_required
+def predict():
+    if predictor is None:
+        flash("Model is not loaded. Please start the app after the checkpoint is available.", "danger")
+        return render_template("upload.html", demo_images=get_demo_images())
+
+    if request.method == "POST":
+        if "leaf_image" not in request.files:
+            flash("No image uploaded.", "danger")
+            return redirect(request.url)
+
+        file = request.files["leaf_image"]
+        if file.filename == "":
+            flash("Please choose an image file.", "danger")
+            return redirect(request.url)
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
+
+            try:
+                result = predictor.predict(save_path, top_k=5)
+                result["predicted_class"] = result["predicted_class"].replace("___", " - ").replace("_", " ")
+                for item in result["top_k_predictions"]:
+                    item["class"] = item["class"].replace("___", " - ").replace("_", " ")
+                save_prediction(
+                    g.user["id"],
+                    filename,
+                    "uploads",
+                    result["predicted_class"],
+                    float(result["confidence"]),
+                )
+                return render_template("results.html", result=result["predicted_class"], confidence=result["confidence"], image_data=base64.b64encode(open(save_path, "rb").read()).decode("utf-8"))
+            except Exception as e:
+                flash(f"Prediction failed: {e}", "danger")
+                return redirect(request.url)
+        else:
+            flash("Allowed image formats: jpg, jpeg, png.", "danger")
+            return redirect(request.url)
+
+    return render_template("upload.html", demo_images=get_demo_images())
+
+
+class CurrentUser:
+    def __init__(self, user):
+        self._user = user
+
+    @property
+    def is_authenticated(self):
+        return self._user is not None
+
+    @property
+    def name(self):
+        return self._user["name"] if self._user else ""
+
+    @property
+    def id(self):
+        return self._user["id"] if self._user else None
+
+
+@app.context_processor
+def inject_user():
+    return {
+        "user": g.user,
+        "current_user": CurrentUser(g.user),
+    }
+
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    app.run(debug=True)
+        init_db()
+    app.run(host="0.0.0.0", port=5000, debug=True)

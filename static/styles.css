@@ -1,0 +1,160 @@
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f7fb;
+  color: #212121;
+}
+
+.container {
+  width: min(980px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.topbar {
+  background: #1a73e8;
+  color: white;
+  padding: 0.75rem 0;
+}
+
+.topbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+
+.hero {
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(15, 35, 85, 0.08);
+  text-align: center;
+}
+
+.hero h1 {
+  margin-top: 0;
+  font-size: clamp(2rem, 3.5vw, 3.4rem);
+}
+
+.button,
+.button-secondary {
+  display: inline-block;
+  background: #1a73e8;
+  color: white;
+  padding: 0.9rem 1.6rem;
+  border-radius: 999px;
+  text-decoration: none;
+  margin-top: 1rem;
+}
+
+.button-secondary {
+  background: #374151;
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.card,
+.form-panel,
+.result-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 1.8rem;
+  box-shadow: 0 18px 50px rgba(15, 35, 85, 0.06);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  margin-bottom: 1.2rem;
+  font-size: 1rem;
+}
+
+button[type="submit"] {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: #1a73e8;
+  color: white;
+  padding: 0.95rem 1.6rem;
+  font-size: 1rem;
+}
+
+.messages .alert {
+  margin-bottom: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.footer {
+  padding: 1rem 0;
+  text-align: center;
+  color: #6b7280;
+}
+
+.result-card {
+  margin-bottom: 1.5rem;
+}
+
+.result-card p {
+  font-size: 1.05rem;
+  margin: 0.75rem 0;
+}
+
+.result-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.result-list li {
+  margin-bottom: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.preview-image {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 1rem;
+  border-radius: 16px;
+  object-fit: contain;
+}

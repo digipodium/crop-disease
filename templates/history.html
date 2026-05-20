@@ -459,8 +459,13 @@
 
             {% for pred in predictions %}
             <div class="scan-item" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+                {% if pred.image_source == 'test' %}
+                <img src="{{ url_for('demo_image', source='test', filename=pred.image_filename) }}" class="leaf-thumb"
+                    alt="Scan">
+                {% else %}
                 <img src="{{ url_for('static', filename='uploads/' + pred.image_filename) }}" class="leaf-thumb"
                     alt="Scan">
+                {% endif %}
 
                 <div class="info-col">
                     <span class="crop-tag">{{ pred.crop_type }}</span>
@@ -478,7 +483,7 @@
                 </div>
 
                 <div class="action-col">
-                    <a href="{{ url_for('delete_history', pred_id=pred.id) }}" class="btn-delete"
+                    <a href="{{ url_for('delete_history', prediction_id=pred.id) }}" class="btn-delete"
                         onclick="return confirm('Archive this record?')">
                         <i class="fas fa-trash-alt"></i>
                     </a>
